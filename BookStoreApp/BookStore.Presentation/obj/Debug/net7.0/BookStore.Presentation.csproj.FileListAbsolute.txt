@@ -1,0 +1,11 @@
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\bin\Debug\net7.0\BookStore.Presentation.deps.json
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\bin\Debug\net7.0\BookStore.Presentation.dll
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\bin\Debug\net7.0\BookStore.Presentation.pdb
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.AssemblyInfoInputs.cache
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.AssemblyInfo.cs
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.csproj.CoreCompileInputs.cache
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.dll
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\refint\BookStore.Presentation.dll
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\BookStore.Presentation.pdb
+C:\Users\HP\OneDrive\Desktop\Book_Store_Project\BookStoreApp\BookStore.Presentation\obj\Debug\net7.0\ref\BookStore.Presentation.dll
