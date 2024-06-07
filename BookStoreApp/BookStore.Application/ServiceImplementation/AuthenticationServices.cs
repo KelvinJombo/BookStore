@@ -90,19 +90,22 @@ namespace BookStore.Application.ServiceImplementation
                 {
                     return ApiResponse<LoginResponseDto>.Failed("User not found.", StatusCodes.Status404NotFound, new List<string>());
                 }
-                if (!user.EmailConfirmed)
-                {
-                    return ApiResponse<LoginResponseDto>.Failed("Email not confirmed.", StatusCodes.Status401Unauthorized, new List<string>());
-                }
+
                 var result = await _signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, lockoutOnFailure: false);
 
                 switch (result)
                 {
                     case { Succeeded: true }:
+                        if (!user.EmailConfirmed)
+                        {
+                            user.EmailConfirmed = true;
+                        }
+
                         var role = (await _userManager.GetRolesAsync(user)).First();
                         user.LastLogin = DateTime.Now;
                         _unitOfWork.UserRepository.Update(user);
                         await _unitOfWork.SaveChangesAsync();
+
                         var response = new LoginResponseDto
                         {
                             JWToken = GenerateJwtToken(user, role)
@@ -110,8 +113,8 @@ namespace BookStore.Application.ServiceImplementation
                         return ApiResponse<LoginResponseDto>.Success(response, "Logged In Successfully", StatusCodes.Status200OK);
 
                     case { IsLockedOut: true }:
-                        return ApiResponse<LoginResponseDto>.Failed($"Account is locked out. Please try again later or contact support." +
-                            $" You can unlock your account after {_userManager.Options.Lockout.DefaultLockoutTimeSpan.TotalMinutes} minutes.", StatusCodes.Status403Forbidden, new List<string>());
+                        return ApiResponse<LoginResponseDto>.Failed($"Account is locked out. Please try again later or contact support. " +
+                            $"You can unlock your account after {_userManager.Options.Lockout.DefaultLockoutTimeSpan.TotalMinutes} minutes.", StatusCodes.Status403Forbidden, new List<string>());
 
                     case { RequiresTwoFactor: true }:
                         return ApiResponse<LoginResponseDto>.Failed("Two-factor authentication is required.", StatusCodes.Status401Unauthorized, new List<string>());
@@ -125,9 +128,10 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                return ApiResponse<LoginResponseDto>.Failed("Some error occurred while login in." + ex.Message, StatusCodes.Status500InternalServerError, new List<string>() { ex.Message });
+                return ApiResponse<LoginResponseDto>.Failed("Some error occurred while logging in." + ex.Message, StatusCodes.Status500InternalServerError, new List<string> { ex.Message });
             }
         }
+
         private string GenerateJwtToken(AppUser contact, string roles)
         {
             var jwtSettings = _config.GetSection("JwtSettings:Secret").Value;

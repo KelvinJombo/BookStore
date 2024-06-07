@@ -21,22 +21,20 @@ namespace BookStoreApp.Controllers
 
 
 
-        [HttpPost("addItem")]
-        public async Task<IActionResult> AddItem([FromBody] AddCartItemRequestDto request)
+        [HttpPost("add")]
+        public async Task<IActionResult> AddItem(AddBookDto bookDto, int quantity)
         {
-            try
+            var result = await _cartServices.AddItemAsync(bookDto, quantity);
+            if (result != null)
             {
-                await _cartServices.AddItemAsync(request.Book, request.Quantity);
-                return Ok(new ApiResponse<string>("Item added to cart successfully."));
+                return Ok("Item added successfully.");
             }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new ApiResponse<string>(false, ex.Message, 404, null, new List<string> { ex.Message }));
-            }
+            return BadRequest("Failed to add item.");
         }
 
+
         [HttpDelete("removeItem")]
-        public async Task<IActionResult> RemoveItem([FromBody] Book book)
+        public async Task<IActionResult> RemoveItem([FromBody] AddBookDto book)
         {
             try
             {

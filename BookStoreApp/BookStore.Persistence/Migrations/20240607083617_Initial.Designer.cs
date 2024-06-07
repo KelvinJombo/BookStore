@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookStore.Persistence.Migrations
 {
     [DbContext(typeof(BookStoreDbContext))]
-    [Migration("20240606144819_ModelUpdates")]
-    partial class ModelUpdates
+    [Migration("20240607083617_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,10 +32,6 @@ namespace BookStore.Persistence.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("CartId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -62,7 +58,6 @@ namespace BookStore.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -103,8 +98,6 @@ namespace BookStore.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CartId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -128,17 +121,12 @@ namespace BookStore.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GenreId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("GenreId1")
+                    b.Property<string>("GenreId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderId")
@@ -159,7 +147,7 @@ namespace BookStore.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GenreId1");
+                    b.HasIndex("GenreId");
 
                     b.HasIndex("OrderId");
 
@@ -254,8 +242,7 @@ namespace BookStore.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserID")
-                        .IsUnique();
+                    b.HasIndex("AppUserID");
 
                     b.ToTable("Orders");
                 });
@@ -393,22 +380,13 @@ namespace BookStore.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BookStore.Domain.Entities.AppUser", b =>
-                {
-                    b.HasOne("BookStore.Domain.Entities.Cart", "Cart")
-                        .WithMany()
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cart");
-                });
-
             modelBuilder.Entity("BookStore.Domain.Entities.Book", b =>
                 {
                     b.HasOne("BookStore.Domain.Entities.Genre", "Genre")
                         .WithMany("Books")
-                        .HasForeignKey("GenreId1");
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("BookStore.Domain.Entities.Order", null)
                         .WithMany("Books")
@@ -439,8 +417,8 @@ namespace BookStore.Persistence.Migrations
             modelBuilder.Entity("BookStore.Domain.Entities.Order", b =>
                 {
                     b.HasOne("BookStore.Domain.Entities.AppUser", "AppUser")
-                        .WithOne("Order")
-                        .HasForeignKey("BookStore.Domain.Entities.Order", "AppUserID")
+                        .WithMany("Orders")
+                        .HasForeignKey("AppUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -500,8 +478,7 @@ namespace BookStore.Persistence.Migrations
 
             modelBuilder.Entity("BookStore.Domain.Entities.AppUser", b =>
                 {
-                    b.Navigation("Order")
-                        .IsRequired();
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("BookStore.Domain.Entities.Cart", b =>

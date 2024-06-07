@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookStore.Persistence.Migrations
 {
     [DbContext(typeof(BookStoreDbContext))]
-    [Migration("20240606073759_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20240607145720_Genre Down")]
+    partial class GenreDown
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,10 +32,6 @@ namespace BookStore.Persistence.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("CartId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -58,8 +54,10 @@ namespace BookStore.Persistence.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("LastLogin")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -100,8 +98,6 @@ namespace BookStore.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CartId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -125,17 +121,11 @@ namespace BookStore.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GenreId")
+                    b.Property<int>("Genre")
                         .HasColumnType("int");
-
-                    b.Property<string>("GenreId1")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderId")
@@ -155,8 +145,6 @@ namespace BookStore.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GenreId1");
 
                     b.HasIndex("OrderId");
 
@@ -214,26 +202,6 @@ namespace BookStore.Persistence.Migrations
                     b.ToTable("CartItems");
                 });
 
-            modelBuilder.Entity("BookStore.Domain.Entities.Genre", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Genres");
-                });
-
             modelBuilder.Entity("BookStore.Domain.Entities.Order", b =>
                 {
                     b.Property<string>("Id")
@@ -243,10 +211,6 @@ namespace BookStore.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("BookID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -255,8 +219,7 @@ namespace BookStore.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserID")
-                        .IsUnique();
+                    b.HasIndex("AppUserID");
 
                     b.ToTable("Orders");
                 });
@@ -394,28 +357,11 @@ namespace BookStore.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BookStore.Domain.Entities.AppUser", b =>
-                {
-                    b.HasOne("BookStore.Domain.Entities.Cart", "Cart")
-                        .WithMany()
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cart");
-                });
-
             modelBuilder.Entity("BookStore.Domain.Entities.Book", b =>
                 {
-                    b.HasOne("BookStore.Domain.Entities.Genre", "Genre")
-                        .WithMany("Books")
-                        .HasForeignKey("GenreId1");
-
                     b.HasOne("BookStore.Domain.Entities.Order", null)
                         .WithMany("Books")
                         .HasForeignKey("OrderId");
-
-                    b.Navigation("Genre");
                 });
 
             modelBuilder.Entity("BookStore.Domain.Entities.CartItem", b =>
@@ -440,8 +386,8 @@ namespace BookStore.Persistence.Migrations
             modelBuilder.Entity("BookStore.Domain.Entities.Order", b =>
                 {
                     b.HasOne("BookStore.Domain.Entities.AppUser", "AppUser")
-                        .WithOne("Order")
-                        .HasForeignKey("BookStore.Domain.Entities.Order", "AppUserID")
+                        .WithMany("Orders")
+                        .HasForeignKey("AppUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -501,18 +447,12 @@ namespace BookStore.Persistence.Migrations
 
             modelBuilder.Entity("BookStore.Domain.Entities.AppUser", b =>
                 {
-                    b.Navigation("Order")
-                        .IsRequired();
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("BookStore.Domain.Entities.Cart", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("BookStore.Domain.Entities.Genre", b =>
-                {
-                    b.Navigation("Books");
                 });
 
             modelBuilder.Entity("BookStore.Domain.Entities.Order", b =>

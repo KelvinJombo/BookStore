@@ -30,7 +30,7 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var serviceProvider = scope.ServiceProvider;
-        await Seeder.SeedRolesAndAdmin(serviceProvider);
+        await Seeder.SeedRoles(serviceProvider);
     }
 
      
@@ -46,7 +46,7 @@ try
 catch (Exception ex)
 {
 
-    logger.Error(ex, "Something is not right here");
+    logger.Error(ex.Message, "Something is not right here");
 }
 finally
 {

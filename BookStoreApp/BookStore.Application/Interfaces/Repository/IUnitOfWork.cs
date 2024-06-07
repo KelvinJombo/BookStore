@@ -8,8 +8,7 @@ namespace BookStore.Application.Interfaces.Repository
 {
     public interface IUnitOfWork : IDisposable
     {
-        IUserRepository UserRepository { get; }
-        IGenreRepository GenreRepository { get; }
+        IUserRepository UserRepository { get; }         
         IBookRepository BookRepository { get; }
         IOrderRepository OrderRepository { get; }
         Task<int> SaveChangesAsync();

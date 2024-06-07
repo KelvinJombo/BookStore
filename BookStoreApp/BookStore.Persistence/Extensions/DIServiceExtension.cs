@@ -36,6 +36,7 @@ namespace BookStore.Persistence.Extensions
             services.AddScoped<ICartServices, CartServices>();
             services.AddScoped<IUserServices, UserServices>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAuthenticationServices, AuthenticationServices>();
 
 
 

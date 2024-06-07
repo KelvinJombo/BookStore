@@ -14,16 +14,14 @@ namespace BookStore.Persistence.Repository
         public UnitOfWork(BookStoreDbContext context)
         {
             _context = context;
-            UserRepository = new UserRepository(context);
-            GenreRepository = new GenreRepository(context);
+            UserRepository = new UserRepository(context);             
             BookRepository = new BookRepository(context);
             CartRepository = new CartRepository(context);
             OrderRepository = new OrderRepository(context);
         }
 
 
-        public IUserRepository UserRepository { get; set; }
-        public IGenreRepository GenreRepository { get; set; }
+        public IUserRepository UserRepository { get; set; }         
         public IBookRepository BookRepository { get; set; }
         public ICartRepository CartRepository { get; set; }
         public IOrderRepository OrderRepository { get; set; }

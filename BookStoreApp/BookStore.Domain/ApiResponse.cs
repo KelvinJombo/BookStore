@@ -44,4 +44,5 @@ namespace BookStore.Domain
             return new ApiResponse<T>(false, message, statusCode, default, errors);
         }
     }
+
 }

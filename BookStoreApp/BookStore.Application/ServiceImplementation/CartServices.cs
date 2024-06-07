@@ -1,4 +1,5 @@
-﻿using BookStore.Application.Interfaces.Repository;
+﻿using BookStore.Application.DTOs;
+using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain.Entities;
 using System;
@@ -21,15 +22,20 @@ namespace BookStore.Application.ServiceImplementation
 
         public List<CartItem> Items { get; private set; }
 
-        public async Task AddItemAsync(Book book, int quantity)
+        public async Task<List<CartItem>> AddItemAsync(AddBookDto bookDto, int quantity)
         {
-            var existingBook = await _unitOfWork.BookRepository.GetByIdAsync(book.Id);
-            if (existingBook == null)
+            if (quantity <= 0)
             {
-                throw new KeyNotFoundException($"Book with ID {book.Id} not found.");
+                throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
             }
 
-            var existingItem = Items.FirstOrDefault(i => i.Book.Id == book.Id);
+            var existingBook = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Title == bookDto.Title);
+            if (existingBook == null)
+            {
+                throw new KeyNotFoundException($"Book with title '{bookDto.Title}' not found.");
+            }
+
+            var existingItem = Items.FirstOrDefault(i => i.Book.Title == bookDto.Title);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
@@ -40,28 +46,31 @@ namespace BookStore.Application.ServiceImplementation
             }
 
             await _unitOfWork.SaveChangesAsync();
+            return Items; // Return the updated cart
         }
 
-        public async Task RemoveItemAsync(Book book)
+
+        public async Task<bool> RemoveItemAsync(AddBookDto book)
         {
-            var existingBook = await _unitOfWork.BookRepository.GetByIdAsync(book.Id);
+            var existingBook = await _unitOfWork.BookRepository.GetByIdAsync(book.Title);
             if (existingBook == null)
             {
-                throw new KeyNotFoundException($"Book with ID {book.Id} not found.");
+                throw new KeyNotFoundException($"Book with ID {book.Title} not found.");
             }
 
-            var item = Items.FirstOrDefault(i => i.Book.Id == book.Id);
+            var item = Items.FirstOrDefault(i => i.Book.Id == book.Title);
             if (item != null)
             {
                 Items.Remove(item);
             }
 
             await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
         public async Task<decimal> GetTotalPriceAsync()
         {
-            // Assuming BookRepository can fetch the latest prices for the books
+             
             foreach (var item in Items)
             {
                 var book = await _unitOfWork.BookRepository.GetByIdAsync(item.Book.Id);

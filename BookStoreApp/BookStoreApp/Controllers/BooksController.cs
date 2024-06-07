@@ -3,6 +3,7 @@ using BookStore.Domain.Entities;
 using BookStore.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using BookStore.Application.DTOs;
 
 namespace BookStoreApp.Controllers
 {
@@ -19,43 +20,43 @@ namespace BookStoreApp.Controllers
 
 
 
-        [HttpPost]
-        public async Task<IActionResult> AddBook([FromBody] Book book)
+        [HttpPost("addBook")]
+        public async Task<IActionResult> AddBook([FromBody] AddBookDto book)
         {
             var response = await _bookServices.AddBookAsync(book);
             if (response.Succeeded)
             {
-                return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, response);
+                // Return the response with the created book details
+                return StatusCode(response.StatusCode, response);
             }
             return StatusCode(response.StatusCode, response);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(string id, [FromBody] Book book)
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateBook([FromBody] UpdateBookDto book)
         {
-            if (id != book.Id)
-            {
-                return BadRequest("Book ID mismatch.");
-            }
+             
 
             var response = await _bookServices.UpdateBookAsync(book);
             return StatusCode(response.StatusCode, response);
         }
 
-        [HttpDelete("{id}")]
+
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteBookById(string id)
         {
             var response = await _bookServices.DeleteBookByIdAsync(id);
             return StatusCode(response.StatusCode, response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("detById")]
         public async Task<IActionResult> GetBookById(string id)
         {
             try
             {
-                var book = await _bookServices.GetBookByIdAsync(id);
-                return Ok(book);
+                var response = await _bookServices.GetBookByIdAsync(id);
+                return Ok(response);
             }
             catch (KeyNotFoundException ex)
             {
@@ -63,7 +64,7 @@ namespace BookStoreApp.Controllers
             }
         }
 
-        [HttpGet("title/{title}")]
+        [HttpGet("getBy/{title}")]
         public async Task<IActionResult> GetBookByTitle(string title)
         {
             try
@@ -77,12 +78,24 @@ namespace BookStoreApp.Controllers
             }
         }
 
-        [HttpGet("genre/{genreId}")]
-        public async Task<IActionResult> GetBooksByGenre(int genreId)
+        [HttpGet("getByGenre/{genreName}")]
+        public async Task<IActionResult> GetBooksByGenre(string genreName)
         {
-            var books = await _bookServices.GetBooksByGenreAsync(genreId);
+            if (string.IsNullOrWhiteSpace(genreName))
+            {
+                return BadRequest("Genre name cannot be empty.");
+            }
+
+            var books = await _bookServices.GetBooksByGenreAsync(genreName);
+
+            if (books == null || !books.Any())
+            {
+                return NotFound($"No books found under the genre: {genreName}");
+            }
+
             return Ok(books);
         }
+
 
         [HttpGet("publishedDate/{publishedDate}")]
         public async Task<IActionResult> GetAllBooksByPublishedDate(DateTime publishedDate)

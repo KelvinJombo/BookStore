@@ -1,4 +1,5 @@
-﻿using BookStore.Domain;
+﻿using BookStore.Application.DTOs;
+using BookStore.Domain;
 using BookStore.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,13 @@ namespace BookStore.Application.Interfaces.Services
 {
     public interface IBookServices
     {
-        Task<ApiResponse<Book>> AddBookAsync(Book book);
-        Task<ApiResponse<Book>> UpdateBookAsync(Book book);
+        Task<ApiResponse<BookResponseDto>> AddBookAsync(AddBookDto bookDto);
+        Task<ApiResponse<BookResponseDto>> UpdateBookAsync(UpdateBookDto bookDto);
         Task<ApiResponse<Book>> DeleteBookByIdAsync(string bookId);
-        Task<Book> GetBookByIdAsync(string bookId);
-        Task<Book> GetBookByTitleAsync(string title);
-        Task<IEnumerable<Book>> GetBooksByGenreAsync(int genreId);
-        Task<IEnumerable<Book>> GetAllBooksByPublishedDateAsync(DateTime publishedDate);
+        Task<BookResponseDto> GetBookByIdAsync(string bookId);
+        Task<BookResponseDto> GetBookByTitleAsync(string title);
+        Task<IEnumerable<BookResponseDto>> GetBooksByGenreAsync(string genreName);
+
+        Task<IEnumerable<BookResponseDto>> GetAllBooksByPublishedDateAsync(DateTime publishedDate);
     }
 }

@@ -35,10 +35,11 @@ namespace BookStoreApp.Controllers
 
             if (registrationResult.Succeeded)
             {
-                var data = registrationResult.Data;
-                //  _backgroundJobClient.Enqueue(() => Console.WriteLine(data));
-                var confirmationLink = GenerateConfirmEmailLink(data.Id, data.Token);
-                return Ok(await _emailService.SendEmailAsync(confirmationLink, data.Email, data.Id));
+                var data = registrationResult.Data;                 
+                var confirmationLink = GenerateConfirmEmailLink(data.Id, data.Token);                 
+                await _emailService.SendEmailAsync(confirmationLink, data.Email, data.Id);
+
+                return Ok(registrationResult);
             }
             else
             {
