@@ -21,29 +21,52 @@ namespace BookStoreApp.Controllers
         }
 
 
-        //[HttpPost("checkout")]
-        //public async Task<IActionResult> Checkout(string paymentMethod)
-        //{
-        //    var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-        //    if (string.IsNullOrEmpty(userId))
-        //    {
-        //        return Unauthorized(new ApiResponse<string>(false, "User not authenticated.", 401, null, new List<string> { "User not authenticated." }));
-        //    }
+        [HttpPost("{userId}/checkout/{cartId}")]
+        public async Task<IActionResult> Checkout(string userId, string cartId)
+        {
+            var response = await _userServices.CheckoutAsync(cartId, userId);
 
-        //    var sessionId = HttpContext.Session.Id;
-        //    var response = await _userServices.CheckoutAsync(userId, sessionId, paymentMethod);
-        //    if (response.Succeeded)
-        //    {
-        //        return Ok(response);
-        //    }
-        //    return BadRequest(response);
-        //}
+            if (response.Succeeded)
+            {
+                return Ok(new { Message = response.Message, CheckoutItems = response.Data });
+            }
+            else
+            {
+                return StatusCode(response.StatusCode, new { Message = response.Message, Errors = response.Errors });
+            }
+
+
+        }
+
+
+
+        [HttpGet("{userId}/purchase-history")]
+        public async Task<IActionResult> GetPurchaseHistory(string userId)
+        {
+            try
+            {
+                var orders = await _userServices.GetPurchaseHistoryAsync(userId);
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new { Message = "No purchase history found for this user." });
+                }
+                return Ok(new { Message = "Purchase history retrieved successfully.", Orders = orders });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (logging implementation is assumed to be in place)
+                // _logger.LogError(ex, "Error retrieving purchase history");
+
+                return StatusCode(500, new { Message = "An error occurred while retrieving the purchase history.", Errors = new List<string> { ex.Message } });
+            }
+        }
 
 
     }
-
-
-
 
 }
 

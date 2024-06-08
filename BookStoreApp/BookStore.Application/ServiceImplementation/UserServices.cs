@@ -1,4 +1,5 @@
-﻿using BookStore.Application.Interfaces.Repository;
+﻿using BookStore.Application.DTOs;
+using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
@@ -19,126 +20,78 @@ namespace BookStore.Application.ServiceImplementation
             _unitOfWork = unitOfWork;
         }
 
-        //public async Task<ApiResponse<string>> CheckoutAsync(string userId, string paymentMethod)
-        //{
-        //    // Simulate payment processing
-        //    bool paymentSuccess = SimulatePayment(paymentMethod);
-        //    if (!paymentSuccess)
-        //    {
-        //        return ApiResponse<string>.Failed("Payment failed. Invalid payment method.", 400, new List<string> { "Invalid payment method." });
-        //    }
-
-        //    // Fetch all cart items for the user
-        //    var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.AppUserID == userId);
-        //    if (cartItems == null || !cartItems.Any())
-        //    {
-        //        return ApiResponse<string>.Failed("Cart is empty.", 400, new List<string> { "Cart is empty." });
-        //    }
-
-        //    // Initialize the total price and list of book IDs
-        //    decimal totalPrice = 0;
-        //    var allBookIDs = new List<string>();
-
-        //    // Process each item in the cart
-        //    foreach (var item in cartItems)
-        //    {
-        //        foreach (var bookId in item.BookIDList)
-        //        {
-        //            var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
-        //            if (book != null)
-        //            {
-        //                if (book.Quantity < item.Quantity)
-        //                {
-        //                    return ApiResponse<string>.Failed($"Insufficient stock for book: {book.Title}", 400, new List<string> { $"Insufficient stock for book: {book.Title}" });
-        //                }
-        //                book.Quantity -= item.Quantity;
-        //                _unitOfWork.BookRepository.Update(book);
-        //                allBookIDs.Add(bookId);
-        //                totalPrice += book.Price * item.Quantity;
-        //            }
-        //        }
-        //    }
-
-        //    // Add the order to the user's orders
-        //    var order = new Order
-        //    {
-        //        AppUserID = userId,
-        //        CreatedAt = DateTime.UtcNow,
-        //        BookIDs = string.Join(",", allBookIDs), // Save as comma-separated string
-        //        TotalPrice = totalPrice,
-        //        Quantity = cartItems.Sum(i => i.Quantity)
-        //    };
-        //    await _unitOfWork.OrderRepository.AddAsync(order);
-
-        //    // Clear the user's cart
-        //    await _unitOfWork.CartRepository.DeleteAllAsync(cartItems);
-        //    await _unitOfWork.SaveChangesAsync();
-
-        //    return ApiResponse<string>.Success("Successful", "Checkout successful.", 200);
-        //}
 
 
 
-        //public async Task<ApiResponse<string>> CheckoutAsync(string userId, string sessionId, string paymentMethod)
-        //{
-        //    // Simulate payment processing
-        //    bool paymentSuccess = SimulatePayment(paymentMethod);
-        //    if (!paymentSuccess)
-        //    {
-        //        return ApiResponse<string>.Failed("Payment failed. Invalid payment method.", 400, new List<string> { "Invalid payment method." });
-        //    }
 
-        //    // Fetch all cart items for the session
-        //    var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.SessionId == sessionId);
-        //    if (cartItems == null || !cartItems.Any())
-        //    {
-        //        return ApiResponse<string>.Failed("Cart is empty.", 400, new List<string> { "Cart is empty." });
-        //    }
+        public async Task<ApiResponse<List<CheckoutDto>>> CheckoutAsync(string cartId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(cartId) || string.IsNullOrWhiteSpace(userId))
+            {
+                return ApiResponse<List<CheckoutDto>>.Failed("Invalid cartId or userId.", 400, new List<string> { "The cartId or userId provided is invalid." });
+            }
 
-        //    // Initialize the total price and list of book IDs
-        //    decimal totalPrice = 0;
-        //    var allBookIDs = new List<string>();
+            try
+            {
+                var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.Id == cartId);
 
-        //    // Process each item in the cart
-        //    foreach (var item in cartItems)
-        //    {
-        //        foreach (var bookId in item.BookIDs)
-        //        {
-        //            var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
-        //            if (book != null)
-        //            {
-        //                if (book.Quantity < item.Quantity)
-        //                {
-        //                    return ApiResponse<string>.Failed($"Insufficient stock for book: {book.Title}", 400, new List<string> { $"Insufficient stock for book: {book.Title}" });
-        //                }
-        //                book.Quantity -= item.Quantity;
-        //                _unitOfWork.BookRepository.Update(book);
-        //                allBookIDs.Add(bookId);
-        //                totalPrice += book.Price * item.Quantity;
-        //            }
-        //        }
+                if (cartItems == null || !cartItems.Any())
+                {
+                    return ApiResponse<List<CheckoutDto>>.Failed("Cart not found or empty.", 404, new List<string> { "The cart with the specified cartId was not found or is empty." });
+                }
 
-        //        // Associate cart item with user
-        //        item.AppUserID = userId;
-        //    }
+                var checkoutItems = new List<CheckoutDto>();
+                decimal totalOrderPrice = 0;
+                int totalOrderQuantity = 0;
+                var bookIds = new List<string>();
 
-        //    // Add the order to the user's orders
-        //    var order = new Order
-        //    {
-        //        AppUserID = userId,
-        //        CreatedAt = DateTime.UtcNow,
-        //        BookIDs = string.Join(",", allBookIDs),
-        //        TotalPrice = totalPrice,
-        //        Quantity = cartItems.Sum(i => i.Quantity)
-        //    };
-        //    await _unitOfWork.OrderRepository.AddAsync(order);
+                foreach (var cartItem in cartItems)
+                {
+                    var book = await _unitOfWork.BookRepository.GetByIdAsync(cartItem.BookId);
+                    if (book != null)
+                    {
+                        var checkoutItem = new CheckoutDto
+                        {
+                            Title = book.Title,
+                            Price = book.Price,
+                            Quantity = cartItem.Quantity,
+                            TotalPrice = book.Price * cartItem.Quantity
+                        };
 
-        //    // Clear the user's cart
-        //    await _unitOfWork.CartRepository.DeleteAllAsync(cartItems);
-        //    await _unitOfWork.SaveChangesAsync();
+                        checkoutItems.Add(checkoutItem);
+                        totalOrderPrice += checkoutItem.TotalPrice;
+                        totalOrderQuantity += cartItem.Quantity;
+                        bookIds.Add(book.Id);
+                    }
+                }
 
-        //    return ApiResponse<string>.Success("", "Checkout successful.", 200);
-        //}
+                var order = new Order
+                {
+                    AppUserID = userId,
+                    BookIDList = bookIds,
+                    TotalPrice = totalOrderPrice,
+                    Quantity = totalOrderQuantity
+                };
+
+                await _unitOfWork.OrderRepository.AddAsync(order);
+
+                // Remove items from cart after checkout
+                foreach (var cartItem in cartItems)
+                {
+                    await _unitOfWork.CartRepository.DeleteAsync(cartItem);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                return ApiResponse<List<CheckoutDto>>.Success(checkoutItems, "Checkout completed successfully.", 200);
+            }
+            catch (Exception ex)
+            {
+                 
+
+                return ApiResponse<List<CheckoutDto>>.Failed("An error occurred during checkout.", 500, new List<string> { ex.Message });
+            }
+        }
 
 
 
@@ -161,19 +114,19 @@ namespace BookStore.Application.ServiceImplementation
 
 
 
-        private bool SimulatePayment(string paymentMethod)
-        {
-            // Simulate payment logic based on the payment method
-            switch (paymentMethod.ToLower())
-            {
-                case "web":
-                case "ussd":
-                case "transfer":
-                    return true; // Simulate successful payment
-                default:
-                    return false; // Invalid payment method
-            }
-        }
+        //private bool SimulatePayment(string paymentMethod)
+        //{
+        //    // Simulate payment logic based on the payment method
+        //    switch (paymentMethod.ToLower())
+        //    {
+        //        case "web":
+        //        case "ussd":
+        //        case "transfer":
+        //            return true; // Simulate successful payment
+        //        default:
+        //            return false; // Invalid payment method
+        //    }
+        //}
 
 
         // Purchase history
