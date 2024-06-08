@@ -9,15 +9,24 @@ namespace BookStore.Domain.Entities
 {
     public class Cart : BaseEntity
     {
-        [ForeignKey("CartItem")]
-        public string CartItemID { get; set; }
-        public List<CartItem> Items { get; set; } = new List<CartItem>();
+        public string BookIDs { get; set; } // Comma-separated string
 
-        
+        [NotMapped]
+        public List<string> BookIDList
+        {
+            get => BookIDs?.Split(',').ToList() ?? new List<string>();
+            set => BookIDs = string.Join(",", value);
+        }
+
+        public List<Book> Books { get; set; } = new List<Book>();
+        public string AppUserID { get; set; }
+        public int Quantity { get; set; }
     }
 
-    
 
-     
+
+
+
+
 
 }

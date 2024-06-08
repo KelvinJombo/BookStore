@@ -18,7 +18,8 @@ namespace BookStore.Domain.Entities
         [Required]
         public string Author { get; set; }
         public decimal Price { get; set; }   
-        public Genre Genre { get; set; }        
+        public Genre Genre { get; set; }
+        public int Quantity { get; set; }
         public DateTime PublishedDate { get; set; }
 
          

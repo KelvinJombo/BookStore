@@ -50,7 +50,7 @@ namespace BookStoreApp.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-        [HttpGet("detById")]
+        [HttpGet("getById")]
         public async Task<IActionResult> GetBookById(string id)
         {
             try

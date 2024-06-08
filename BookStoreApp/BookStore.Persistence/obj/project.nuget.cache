@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "n2PsEwQSMGhha+MMDbYPdSpKF0h2w3WLjGU8NN+9ETSi22xTWTmcAslbF11ZQODkp6UgqRKhefwxxdv25MHe6A==",
+  "dgSpecHash": "H/slOD2DCIr05yUXX0OUqNlfHIgAN5VqmQ5VvPJa6w9tKuf8dJnUgcyl1RpgGVDtH6G06jvJ4NG8l9RoWDPYEg==",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\OneDrive\\Desktop\\BookRepo\\BookStore\\BookStoreApp\\BookStore.Persistence\\BookStore.Persistence.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\HP\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\bouncycastle.cryptography\\2.3.1\\bouncycastle.cryptography.2.3.1.nupkg.sha512",

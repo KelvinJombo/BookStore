@@ -22,30 +22,50 @@ namespace BookStoreApp.Controllers
 
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddItem(AddBookDto bookDto, int quantity)
+        public async Task<IActionResult> AddItem(string bookId, int quantity)
         {
-            var result = await _cartServices.AddItemAsync(bookDto, quantity);
-            if (result != null)
+            var response = await _cartServices.AddItemAsync(bookId, quantity);
+
+            if (response.Succeeded)
             {
-                return Ok("Item added successfully.");
+                return Ok(response);
             }
-            return BadRequest("Failed to add item.");
+
+            if (response.StatusCode == 400)
+            {
+                return BadRequest(response);
+            }
+
+            if (response.StatusCode == 404)
+            {
+                return NotFound(response);
+            }
+
+            return StatusCode(500, new ApiResponse<string>(false, "An unexpected error occurred.", 500, null, response.Errors));
         }
 
 
+
+
+
         [HttpDelete("removeItem")]
-        public async Task<IActionResult> RemoveItem([FromBody] AddBookDto book)
+        public async Task<IActionResult> RemoveItem(string bookId)
         {
             try
             {
-                await _cartServices.RemoveItemAsync(book);
+                await _cartServices.RemoveItemAsync(bookId);
                 return Ok(new ApiResponse<string>("Item removed from cart successfully."));
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new ApiResponse<string>(false, ex.Message, 404, null, new List<string> { ex.Message }));
             }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(false, ex.Message, 400, null, new List<string> { ex.Message }));
+            }
         }
+
 
         [HttpGet("totalPrice")]
         public async Task<IActionResult> GetTotalPrice()
@@ -54,11 +74,12 @@ namespace BookStoreApp.Controllers
             return Ok(new ApiResponse<decimal>(totalPrice, "Total price retrieved successfully."));
         }
 
+         
         [HttpGet("viewCart")]
         public async Task<IActionResult> ViewCart()
         {
-            var cartItems = await _cartServices.ViewCartAsync();
-            return Ok(new ApiResponse<List<CartItem>>(cartItems, "Cart items retrieved successfully."));
+            var response = await _cartServices.ViewCartAsync();
+            return Ok(response);
         }
 
 

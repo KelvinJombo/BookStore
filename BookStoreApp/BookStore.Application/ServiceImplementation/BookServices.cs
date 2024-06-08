@@ -1,60 +1,41 @@
-﻿using BookStore.Application.DTOs;
+﻿using AutoMapper;
+using BookStore.Application.DTOs;
 using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
 using BookStore.Domain.Enums;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BookStore.Application.ServiceImplementation
 {
     public class BookServices : IBookServices
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public BookServices(IUnitOfWork unitOfWork)
+        public BookServices(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
+
+         
+         
 
         public async Task<ApiResponse<BookResponseDto>> AddBookAsync(AddBookDto bookDto)
         {
-            var book = new Book
-            {
-                Id = Guid.NewGuid().ToString(),
-                Title = bookDto.Title,
-                Author = bookDto.Author,
-                Price = bookDto.Price,
-                PublishedDate = bookDto.PublishedDate,
-                ISBN = bookDto.ISBN,
-                Genre = bookDto.Genre  
-            };
+            var book = _mapper.Map<Book>(bookDto);
 
             await _unitOfWork.BookRepository.AddAsync(book);
             await _unitOfWork.SaveChangesAsync();
 
-            var responseDto = new BookResponseDto
-            {
-                Title = book.Title,
-                Author = book.Author,
-                ISBN = book.ISBN,
-                Price = book.Price,
-                PublishedDate = book.PublishedDate,
-                CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt,
-                Genre = book.Genre,
-            };
+            var responseDto = _mapper.Map<BookResponseDto>(book);
 
             return ApiResponse<BookResponseDto>.Success(responseDto, "Book added successfully.", 201);
         }
 
 
-
+         
 
         public async Task<ApiResponse<BookResponseDto>> UpdateBookAsync(UpdateBookDto bookDto)
         {
@@ -68,31 +49,14 @@ namespace BookStore.Application.ServiceImplementation
                 }
 
                 // Update the existing book entity with values from the DTO
-                existingBook.Title = bookDto.Title;
-                existingBook.Author = bookDto.Author;
-                existingBook.Genre = bookDto.Genre;
-                existingBook.Price = bookDto.Price;
-                existingBook.PublishedDate = bookDto.PublishedDate;
-                existingBook.ISBN = bookDto.ISBN;                 
-                existingBook.UpdatedAt = DateTime.UtcNow;
+                _mapper.Map(bookDto, existingBook);
 
                 // Save the changes to the repository
                 _unitOfWork.BookRepository.Update(existingBook);
                 await _unitOfWork.SaveChangesAsync();
 
                 // Create a response DTO with the updated book details
-                var responseDto = new BookResponseDto
-                {
-                     
-                    Title = existingBook.Title,
-                    Author = existingBook.Author,
-                    Genre = existingBook.Genre,
-                    Price = existingBook.Price,
-                    ISBN = existingBook.ISBN,
-                    CreatedAt = existingBook.CreatedAt,
-                    UpdatedAt = existingBook.UpdatedAt,
-                    PublishedDate = existingBook.PublishedDate
-                };
+                var responseDto = _mapper.Map<BookResponseDto>(existingBook);
 
                 return ApiResponse<BookResponseDto>.Success(responseDto, "Book updated successfully.", 200);
             }
@@ -102,6 +66,7 @@ namespace BookStore.Application.ServiceImplementation
                 return ApiResponse<BookResponseDto>.Failed("An error occurred while updating the book: " + ex.Message, 500, new List<string> { ex.Message });
             }
         }
+
 
 
 
@@ -121,7 +86,7 @@ namespace BookStore.Application.ServiceImplementation
             }
         }
 
-          
+
         public async Task<BookResponseDto> GetBookByIdAsync(string bookId)
         {
             var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
@@ -130,22 +95,12 @@ namespace BookStore.Application.ServiceImplementation
                 throw new KeyNotFoundException($"Book with ID {bookId} not found.");
             }
 
-            // Map the Book entity to BookResponseDto
-            var responseDto = new BookResponseDto
-            {
-                 
-                Title = book.Title,
-                Author = book.Author,
-                Genre = book.Genre,
-                Price = book.Price,
-                ISBN = book.ISBN,
-                CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt,
-                PublishedDate = book.PublishedDate
-            };
+            // Map the Book entity to BookResponseDto using AutoMapper
+            var responseDto = _mapper.Map<BookResponseDto>(book);
 
             return responseDto;
         }
+
 
 
         public async Task<BookResponseDto> GetBookByTitleAsync(string title)
@@ -156,18 +111,8 @@ namespace BookStore.Application.ServiceImplementation
                 throw new KeyNotFoundException($"Book with title {title} not found.");
             }
 
-            // Map the Book entity to BookResponseDto
-            var responseDto = new BookResponseDto
-            {                 
-                Title = book.Title,
-                Author = book.Author,
-                Genre = book.Genre,
-                Price = book.Price,
-                ISBN = book.ISBN,
-                CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt,
-                PublishedDate = book.PublishedDate
-            };
+            // Map the Book entity to BookResponseDto using AutoMapper
+            var responseDto = _mapper.Map<BookResponseDto>(book);
 
             return responseDto;
         }
@@ -191,18 +136,8 @@ namespace BookStore.Application.ServiceImplementation
             // Find books that match the genre
             var books = await _unitOfWork.BookRepository.FindAsync(b => b.Genre == genre);
 
-            // Map each Book entity to BookResponseDto
-            var bookResponseDtos = books.Select(book => new BookResponseDto
-            {
-                Title = book.Title,
-                Author = book.Author,
-                Genre = book.Genre,
-                Price = book.Price,
-                ISBN = book.ISBN,
-                CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt,
-                PublishedDate = book.PublishedDate
-            });
+            // Map the collection of Book entities to BookResponseDto using AutoMapper
+            var bookResponseDtos = _mapper.Map<IEnumerable<BookResponseDto>>(books);
 
             return bookResponseDtos;
         }
@@ -214,19 +149,8 @@ namespace BookStore.Application.ServiceImplementation
         {
             var books = await _unitOfWork.BookRepository.FindAsync(b => b.PublishedDate.Date == publishedDate.Date);
 
-            // Map each Book entity to BookResponseDto
-            var bookResponseDtos = books.Select(book => new BookResponseDto
-            {
-                
-                Title = book.Title,
-                Author = book.Author,
-                Genre = book.Genre,
-                Price = book.Price,
-                ISBN = book.ISBN,
-                CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt,
-                PublishedDate = book.PublishedDate
-            });
+            // Map the collection of Book entities to BookResponseDto using AutoMapper
+            var bookResponseDtos = _mapper.Map<IEnumerable<BookResponseDto>>(books);
 
             return bookResponseDtos;
         }

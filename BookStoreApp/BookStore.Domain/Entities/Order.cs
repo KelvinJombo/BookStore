@@ -10,10 +10,24 @@ namespace BookStore.Domain.Entities
     public class Order : BaseEntity
     {
         public AppUser AppUser { get; set; }
+
         [ForeignKey("AppUser")]
         public string AppUserID { get; set; }
-        public ICollection<Book> Books { get; set; }
-       
+
+        public string BookIDs { get; set; }
+
+        [NotMapped]
+        public List<string> BookIDList
+        {
+            get => BookIDs?.Split(',').ToList() ?? new List<string>();
+            set => BookIDs = string.Join(",", value);
+        }
+
+        public decimal TotalPrice { get; set; }
+        public int Quantity { get; set; }
     }
+
+
+
 
 }

@@ -1,4 +1,5 @@
 ﻿using BookStore.Application.DTOs;
+using BookStore.Domain;
 using BookStore.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,10 @@ namespace BookStore.Application.Interfaces.Services
 {
     public interface ICartServices
     {
-        Task<List<CartItem>> AddItemAsync(AddBookDto bookDto, int quantity);
-        Task<bool> RemoveItemAsync(AddBookDto book);
-        Task<decimal> GetTotalPriceAsync();
-        Task ClearAsync();
-        Task<List<CartItem>> ViewCartAsync();
+        Task<ApiResponse<string>> AddItemAsync(string bookId, int quantity);
+        Task<ApiResponse<string>> RemoveItemAsync(string bookId);
+        Task<decimal> GetTotalPriceAsync();         
+        Task<ApiResponse<List<Cart>>> ViewCartAsync();
+         
     }
 }

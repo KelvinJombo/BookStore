@@ -19,7 +19,7 @@ namespace BookStore.Persistence.Repository
             await _context.Set<T>().AddAsync(entity);
         }
 
-        public void DeleteAllAsync(List<T> entities)
+        public async Task DeleteAllAsync(List<T> entities)
         {
             _context.Set<T>().RemoveRange(entities);
         }

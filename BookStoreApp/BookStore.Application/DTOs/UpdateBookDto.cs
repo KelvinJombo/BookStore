@@ -17,7 +17,8 @@ namespace BookStore.Application.DTOs
         public decimal Price { get; set; }
         public DateTime PublishedDate { get; set; }
         public string ISBN { get; set; }
-        
+         
+
     }
 
 }

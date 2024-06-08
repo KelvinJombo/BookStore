@@ -1,6 +1,7 @@
 ﻿using BookStore.Application.DTOs;
 using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
+using BookStore.Domain;
 using BookStore.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -13,101 +14,110 @@ namespace BookStore.Application.ServiceImplementation
     public class CartServices : ICartServices
     {
         private readonly IUnitOfWork _unitOfWork;
-
+         
         public CartServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            Items = new List<CartItem>();
+            
         }
 
-        public List<CartItem> Items { get; private set; }
+          
 
-        public async Task<List<CartItem>> AddItemAsync(AddBookDto bookDto, int quantity)
+        public async Task<ApiResponse<string>> AddItemAsync(string bookId, int quantity)
         {
             if (quantity <= 0)
             {
-                throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
+                return new ApiResponse<string>(false, "Quantity must be greater than zero.", 400, null, new List<string> { "Quantity must be greater than zero." });
             }
 
-            var existingBook = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Title == bookDto.Title);
+            var existingBook = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Id == bookId);
             if (existingBook == null)
             {
-                throw new KeyNotFoundException($"Book with title '{bookDto.Title}' not found.");
+                return new ApiResponse<string>(false, $"Book with ID {bookId} not found.", 404, null, new List<string> { $"Book with ID {bookId} not found." });
             }
 
-            var existingItem = Items.FirstOrDefault(i => i.Book.Title == bookDto.Title);
-            if (existingItem != null)
+            var existingCart = await _unitOfWork.CartRepository.FindSingleAsync(c => c.BookIDs.Contains(bookId));
+            if (existingCart != null)
             {
-                existingItem.Quantity += quantity;
+                existingCart.Quantity += quantity;
             }
             else
             {
-                Items.Add(new CartItem { Book = existingBook, Quantity = quantity });
+                var newCart = new Cart
+                {
+                    BookIDList = new List<string> { bookId },
+                    Quantity = quantity
+                };
+                await _unitOfWork.CartRepository.AddAsync(newCart);
             }
 
             await _unitOfWork.SaveChangesAsync();
-            return Items; // Return the updated cart
+
+            return new ApiResponse<string>(true, "Item added successfully.", 200, "Item added successfully.", new List<string>());
         }
 
 
-        public async Task<bool> RemoveItemAsync(AddBookDto book)
+
+        public async Task<ApiResponse<string>> RemoveItemAsync(string bookId)
         {
-            var existingBook = await _unitOfWork.BookRepository.GetByIdAsync(book.Title);
-            if (existingBook == null)
+            var existingCart = await _unitOfWork.CartRepository.FindSingleAsync(c => c.BookIDs.Contains(bookId));
+            if (existingCart == null)
             {
-                throw new KeyNotFoundException($"Book with ID {book.Title} not found.");
+                return new ApiResponse<string>(false, $"Cart item with Book ID {bookId} not found.", 404, null, new List<string> { $"Cart item with Book ID {bookId} not found." });
             }
 
-            var item = Items.FirstOrDefault(i => i.Book.Id == book.Title);
-            if (item != null)
+            existingCart.BookIDList.Remove(bookId);
+            if (!existingCart.BookIDs.Any())
             {
-                Items.Remove(item);
+                _unitOfWork.CartRepository.DeleteAsync(existingCart);
             }
 
             await _unitOfWork.SaveChangesAsync();
-            return true;
+            return new ApiResponse<string>(true, "Item removed successfully.", 200, "Item removed successfully.", new List<string>());
         }
+
+        public async Task<ApiResponse<List<Cart>>> ViewCartAsync()
+        {
+            var cartItems = await _unitOfWork.CartRepository.GetAllAsync();
+            return new ApiResponse<List<Cart>>(true, "Cart items retrieved successfully.", 200, cartItems.ToList(), new List<string>());
+        }
+
+         
 
         public async Task<decimal> GetTotalPriceAsync()
         {
-             
-            foreach (var item in Items)
+            // Fetch all cart items from the database
+            var cartItems = await _unitOfWork.CartRepository.GetAllAsync();
+
+            foreach (var item in cartItems)
             {
-                var book = await _unitOfWork.BookRepository.GetByIdAsync(item.Book.Id);
-                if (book != null)
+                // Initialize a list to store the book details
+                var books = new List<Book>();
+
+                // Loop through each book ID in the cart item
+                foreach (var bookId in item.BookIDList)
                 {
-                    item.Book.Price = book.Price; // Update the price in the cart to the latest price
+                    // Fetch the book details from the repository
+                    var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
+                    if (book != null)
+                    {
+                        // Add the book to the list
+                        books.Add(book);
+                    }
                 }
+                // Update the cart item with the fetched book details
+                item.Books = books;
             }
 
-            return Items.Sum(i => i.Book.Price * i.Quantity);
-        }
+            // Calculate the total price by summing up the price of each book multiplied by its quantity
+            var totalPrice = cartItems.Sum(item => item.Books.Sum(book => book.Price) * item.Quantity);
 
-        public async Task ClearAsync()
-        {
-            Items.Clear();
-            await _unitOfWork.SaveChangesAsync();
+            return totalPrice;
         }
+         
 
-        public async Task<List<CartItem>> ViewCartAsync()
-        {
-            // Refresh the cart items with the latest details from the database
-            foreach (var item in Items)
-            {
-                var book = await _unitOfWork.BookRepository.GetByIdAsync(item.Book.Id);
-                if (book != null)
-                {
-                    item.Book.Title = book.Title;
-                    item.Book.Author = book.Author;
-                    item.Book.Price = book.Price;
-                    // Update any other relevant fields
-                }
-            }
-
-            return Items;
-        }
     }
 
-
+     
 }
 

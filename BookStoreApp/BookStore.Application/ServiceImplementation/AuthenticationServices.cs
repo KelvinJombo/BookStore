@@ -149,8 +149,7 @@ namespace BookStore.Application.ServiceImplementation
             var token = new JwtSecurityToken(
                 issuer: _config.GetValue<string>("JwtSettings:ValidIssuer"),
                 audience: _config.GetValue<string>("JwtSettings:ValidAudience"),
-            //issuer: null,
-            //audience: null,
+             
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(int.Parse(_config.GetSection("JwtSettings:AccessTokenExpiration").Value)),
                 signingCredentials: credentials

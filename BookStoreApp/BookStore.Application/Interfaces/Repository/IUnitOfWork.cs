@@ -11,6 +11,7 @@ namespace BookStore.Application.Interfaces.Repository
         IUserRepository UserRepository { get; }         
         IBookRepository BookRepository { get; }
         IOrderRepository OrderRepository { get; }
+        ICartRepository CartRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

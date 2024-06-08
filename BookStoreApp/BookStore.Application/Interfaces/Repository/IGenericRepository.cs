@@ -15,7 +15,7 @@ namespace BookStore.Application.Interfaces.Repository
         Task AddAsync(T entity);
         void Update(T entity);
         Task DeleteAsync(T entity);
-        void DeleteAllAsync(List<T> entities);
+        Task DeleteAllAsync(List<T> entities);
         void SaveChangesAsync();
         Task<T> FindSingleAsync(Expression<Func<T, bool>> expression);
     }

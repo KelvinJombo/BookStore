@@ -1,23 +1,15 @@
 ﻿using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Application.ServiceImplementation;
-using BookStore.Domain.Entities;
 using BookStore.Domain.Entities.Helper;
+using BookStore.Domain.Entities;
 using BookStore.Persistence.Context;
 using BookStore.Persistence.Repository;
-using MailKit;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using BookStoreApp.Mapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BookStore.Persistence.Extensions
+namespace BookStoreApp.Configuration
 {
     public static class DIServiceExtension
     {
@@ -31,7 +23,7 @@ namespace BookStore.Persistence.Extensions
                 .AddDefaultTokenProviders();
 
 
-
+            services.AddAutoMapper(typeof(MapperProfiles));
             services.AddScoped<IBookServices, BookServices>();
             services.AddScoped<ICartServices, CartServices>();
             services.AddScoped<IUserServices, UserServices>();
@@ -39,7 +31,7 @@ namespace BookStore.Persistence.Extensions
             services.AddScoped<IAuthenticationServices, AuthenticationServices>();
 
 
-
+             
 
             var emailSettings = new EmailSettings();
             configuration.GetSection("EmailSettings").Bind(emailSettings);

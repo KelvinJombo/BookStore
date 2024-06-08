@@ -198,3 +198,4 @@ C:\Users\HP\OneDrive\Desktop\BookRepo\BookStore\BookStoreApp\BookStoreApp\bin\De
 C:\Users\HP\OneDrive\Desktop\BookRepo\BookStore\BookStoreApp\BookStoreApp\bin\Debug\net7.0\NLog.dll
 C:\Users\HP\OneDrive\Desktop\BookRepo\BookStore\BookStoreApp\BookStoreApp\bin\Debug\net7.0\NLog.Extensions.Logging.dll
 C:\Users\HP\OneDrive\Desktop\BookRepo\BookStore\BookStoreApp\BookStoreApp\bin\Debug\net7.0\NLog.Web.AspNetCore.dll
+C:\Users\HP\OneDrive\Desktop\BookRepo\BookStore\BookStoreApp\BookStoreApp\bin\Debug\net7.0\AutoMapper.dll
