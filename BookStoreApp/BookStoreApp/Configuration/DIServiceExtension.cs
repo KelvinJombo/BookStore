@@ -8,6 +8,7 @@ using BookStore.Persistence.Repository;
 using BookStoreApp.Mapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace BookStoreApp.Configuration
 {
@@ -30,8 +31,8 @@ namespace BookStoreApp.Configuration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuthenticationServices, AuthenticationServices>();
 
+            //services.AddScoped<CartService>();
 
-             
 
             var emailSettings = new EmailSettings();
             configuration.GetSection("EmailSettings").Bind(emailSettings);

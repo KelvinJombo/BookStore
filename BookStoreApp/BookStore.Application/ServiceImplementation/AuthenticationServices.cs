@@ -103,7 +103,7 @@ namespace BookStore.Application.ServiceImplementation
 
                         var role = (await _userManager.GetRolesAsync(user)).First();
                         user.LastLogin = DateTime.Now;
-                        _unitOfWork.UserRepository.Update(user);
+                        _unitOfWork.UserRepository.UpdateAsync(user);
                         await _unitOfWork.SaveChangesAsync();
 
                         var response = new LoginResponseDto

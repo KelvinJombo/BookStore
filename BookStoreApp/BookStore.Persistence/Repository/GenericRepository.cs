@@ -55,7 +55,7 @@ namespace BookStore.Persistence.Repository
             await _context.SaveChangesAsync();
         }
 
-        public void Update(T entity)
+        public void UpdateAsync(T entity)
         {
             _context.Set<T>().Update(entity);
         }

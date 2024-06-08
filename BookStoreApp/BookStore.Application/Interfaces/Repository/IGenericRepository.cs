@@ -13,7 +13,7 @@ namespace BookStore.Application.Interfaces.Repository
         Task<List<T>> GetAllAsync();
         Task<List<T>> FindAsync(Expression<Func<T, bool>> expression);
         Task AddAsync(T entity);
-        void Update(T entity);
+        void UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task DeleteAllAsync(List<T> entities);
         void SaveChangesAsync();

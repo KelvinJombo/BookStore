@@ -14,110 +14,193 @@ namespace BookStore.Application.ServiceImplementation
     public class CartServices : ICartServices
     {
         private readonly IUnitOfWork _unitOfWork;
-         
+
         public CartServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            
+
         }
 
-          
+
 
         public async Task<ApiResponse<string>> AddItemAsync(string bookId, int quantity)
         {
+            if (string.IsNullOrWhiteSpace(bookId))
+            {
+                return ApiResponse<string>.Failed("Invalid bookId.", 400, new List<string> { "The bookId provided is invalid." });
+            }
+
             if (quantity <= 0)
             {
-                return new ApiResponse<string>(false, "Quantity must be greater than zero.", 400, null, new List<string> { "Quantity must be greater than zero." });
+                return ApiResponse<string>.Failed("Quantity must be greater than zero.", 400, new List<string> { "The quantity must be greater than zero." });
             }
 
-            var existingBook = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Id == bookId);
-            if (existingBook == null)
+            try
             {
-                return new ApiResponse<string>(false, $"Book with ID {bookId} not found.", 404, null, new List<string> { $"Book with ID {bookId} not found." });
-            }
+                // Fetch the cart item for the session with the specified bookId
+                var cartItem = await _unitOfWork.CartRepository.FindSingleAsync(c => c.BookId == bookId);
 
-            var existingCart = await _unitOfWork.CartRepository.FindSingleAsync(c => c.BookIDs.Contains(bookId));
-            if (existingCart != null)
-            {
-                existingCart.Quantity += quantity;
-            }
-            else
-            {
-                var newCart = new Cart
+                if (cartItem != null)
                 {
-                    BookIDList = new List<string> { bookId },
-                    Quantity = quantity
-                };
-                await _unitOfWork.CartRepository.AddAsync(newCart);
-            }
-
-            await _unitOfWork.SaveChangesAsync();
-
-            return new ApiResponse<string>(true, "Item added successfully.", 200, "Item added successfully.", new List<string>());
-        }
-
-
-
-        public async Task<ApiResponse<string>> RemoveItemAsync(string bookId)
-        {
-            var existingCart = await _unitOfWork.CartRepository.FindSingleAsync(c => c.BookIDs.Contains(bookId));
-            if (existingCart == null)
-            {
-                return new ApiResponse<string>(false, $"Cart item with Book ID {bookId} not found.", 404, null, new List<string> { $"Cart item with Book ID {bookId} not found." });
-            }
-
-            existingCart.BookIDList.Remove(bookId);
-            if (!existingCart.BookIDs.Any())
-            {
-                _unitOfWork.CartRepository.DeleteAsync(existingCart);
-            }
-
-            await _unitOfWork.SaveChangesAsync();
-            return new ApiResponse<string>(true, "Item removed successfully.", 200, "Item removed successfully.", new List<string>());
-        }
-
-        public async Task<ApiResponse<List<Cart>>> ViewCartAsync()
-        {
-            var cartItems = await _unitOfWork.CartRepository.GetAllAsync();
-            return new ApiResponse<List<Cart>>(true, "Cart items retrieved successfully.", 200, cartItems.ToList(), new List<string>());
-        }
-
-         
-
-        public async Task<decimal> GetTotalPriceAsync()
-        {
-            // Fetch all cart items from the database
-            var cartItems = await _unitOfWork.CartRepository.GetAllAsync();
-
-            foreach (var item in cartItems)
-            {
-                // Initialize a list to store the book details
-                var books = new List<Book>();
-
-                // Loop through each book ID in the cart item
-                foreach (var bookId in item.BookIDList)
-                {
-                    // Fetch the book details from the repository
-                    var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
-                    if (book != null)
-                    {
-                        // Add the book to the list
-                        books.Add(book);
-                    }
+                    cartItem.Quantity += quantity;
+                    _unitOfWork.CartRepository.UpdateAsync(cartItem);
                 }
-                // Update the cart item with the fetched book details
-                item.Books = books;
+                else
+                {
+                    cartItem = new Cart
+                    {
+                        BookId = bookId,
+                        Quantity = quantity
+                    };
+                    await _unitOfWork.CartRepository.AddAsync(cartItem);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                return ApiResponse<string>.Success(cartItem.Id.ToString(), "Item added to cart successfully.", 200);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (logging implementation is assumed to be in place)
+                // _logger.LogError(ex, "Error adding item to cart");
+
+                return ApiResponse<string>.Failed("An error occurred while adding the item to the cart.", 500, new List<string> { ex.Message });
+            }
+        }
+
+
+
+
+
+
+
+        public async Task<ApiResponse<string>> RemoveItemAsync(string cartId, string bookId)
+        {
+            if (string.IsNullOrWhiteSpace(cartId))
+            {
+                return ApiResponse<string>.Failed("Invalid cartId.", 400, new List<string> { "The cartId provided is invalid." });
             }
 
-            // Calculate the total price by summing up the price of each book multiplied by its quantity
-            var totalPrice = cartItems.Sum(item => item.Books.Sum(book => book.Price) * item.Quantity);
+            if (string.IsNullOrWhiteSpace(bookId))
+            {
+                return ApiResponse<string>.Failed("Invalid itemId.", 400, new List<string> { "The itemId provided is invalid." });
+            }
 
-            return totalPrice;
+            try
+            {
+                // Fetch the cart item with the specified cartId and itemId
+                var cartItem = await _unitOfWork.CartRepository.FindSingleAsync(c => c.Id == cartId && c.BookId == bookId);
+
+                if (cartItem != null)
+                {
+                    await _unitOfWork.CartRepository.DeleteAsync(cartItem);
+                    await _unitOfWork.SaveChangesAsync();
+                    return ApiResponse<string>.Success(cartItem.Id.ToString(), "Item removed from cart successfully.", 200);
+                }
+                else
+                {
+                    return ApiResponse<string>.Failed("Item not found in the cart.", 404, new List<string> { "The item with the specified cartId and itemId was not found in the cart." });
+                }
+            }
+            catch (Exception ex)
+            {
+                 
+
+                return ApiResponse<string>.Failed("An error occurred while removing the item from the cart.", 500, new List<string> { ex.Message });
+            }
         }
-         
+
+
+        public async Task<ApiResponse<List<CartViewDto>>> ViewCartContentsAsync(string cartId)
+        {
+            if (string.IsNullOrWhiteSpace(cartId))
+            {
+                return ApiResponse<List<CartViewDto>>.Failed("Invalid cartId.", 400, new List<string> { "The cartId provided is invalid." });
+            }
+
+            try
+            {
+                var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.Id == cartId);
+
+                if (cartItems != null && cartItems.Any())
+                {
+                    var cartViewItems = new List<CartViewDto>();
+
+                    foreach (var cartItem in cartItems)
+                    {
+                        var book = await _unitOfWork.BookRepository.GetByIdAsync(cartItem.BookId);
+                        if (book != null)
+                        {
+                            cartViewItems.Add(new CartViewDto
+                            {
+                                BookTitle = book.Title,
+                                Quantity = cartItem.Quantity
+                            });
+                        }
+                    }
+
+                    return ApiResponse<List<CartViewDto>>.Success(cartViewItems, "Cart contents retrieved successfully.", 200);
+                }
+                else
+                {
+                    return ApiResponse<List<CartViewDto>>.Failed("Cart not found or empty.", 404, new List<string> { "The cart with the specified cartId was not found or is empty." });
+                }
+            }
+            catch (Exception ex)
+            {
+                 
+
+                return ApiResponse<List<CartViewDto>>.Failed("An error occurred while retrieving the cart contents.", 500, new List<string> { ex.Message });
+            }
+
+
+        }
+
+
+
+        public async Task<ApiResponse<decimal>> GetCartTotalPriceAsync(string cartId)
+        {
+            if (string.IsNullOrWhiteSpace(cartId))
+            {
+                return ApiResponse<decimal>.Failed("Invalid cartId.", 400, new List<string> { "The cartId provided is invalid." });
+            }
+
+            try
+            {
+                var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.Id == cartId);
+
+                if (cartItems != null && cartItems.Any())
+                {
+                    decimal totalPrice = 0;
+
+                    foreach (var cartItem in cartItems)
+                    {
+                        var book = await _unitOfWork.BookRepository.GetByIdAsync(cartItem.BookId);
+                        if (book != null)
+                        {
+                            totalPrice += book.Price * cartItem.Quantity;
+                        }
+                    }
+
+                    return ApiResponse<decimal>.Success(totalPrice, "Total price of cart calculated successfully.", 200);
+                }
+                else
+                {
+                    return ApiResponse<decimal>.Failed("Cart not found or empty.", 404, new List<string> { "The cart with the specified cartId was not found or is empty." });
+                }
+            }
+            catch (Exception ex)
+            {
+                 
+
+                return ApiResponse<decimal>.Failed("An error occurred while calculating the total price of the cart.", 500, new List<string> { ex.Message });
+            }
+
+
+        }
+
+
 
     }
-
-     
 }
 

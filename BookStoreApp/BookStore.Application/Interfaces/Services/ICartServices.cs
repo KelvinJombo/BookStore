@@ -12,9 +12,9 @@ namespace BookStore.Application.Interfaces.Services
     public interface ICartServices
     {
         Task<ApiResponse<string>> AddItemAsync(string bookId, int quantity);
-        Task<ApiResponse<string>> RemoveItemAsync(string bookId);
-        Task<decimal> GetTotalPriceAsync();         
-        Task<ApiResponse<List<Cart>>> ViewCartAsync();
+        Task<ApiResponse<string>> RemoveItemAsync(string cartId, string bookId);
+        Task<ApiResponse<decimal>> GetCartTotalPriceAsync(string cartId);
+        Task<ApiResponse<List<CartViewDto>>> ViewCartContentsAsync(string cartId);
          
     }
 }

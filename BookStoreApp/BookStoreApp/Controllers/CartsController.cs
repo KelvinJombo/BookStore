@@ -5,6 +5,7 @@ using BookStore.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using BookStore.Application.DTOs;
+using Microsoft.AspNetCore.Identity;
 
 namespace BookStoreApp.Controllers
 {
@@ -13,73 +14,77 @@ namespace BookStoreApp.Controllers
     public class CartsController : ControllerBase
     {
         private readonly ICartServices _cartServices;
+        private readonly UserManager<AppUser> _userManager;
 
-        public CartsController(ICartServices cartServices)
+        public CartsController(ICartServices cartServices, UserManager<AppUser> userManager)
         {
             _cartServices = cartServices;
+            _userManager = userManager;
         }
 
 
 
-        [HttpPost("add")]
+        [HttpPost("add-item")]
         public async Task<IActionResult> AddItem(string bookId, int quantity)
         {
+             
             var response = await _cartServices.AddItemAsync(bookId, quantity);
-
             if (response.Succeeded)
             {
                 return Ok(response);
             }
-
-            if (response.StatusCode == 400)
-            {
-                return BadRequest(response);
-            }
-
-            if (response.StatusCode == 404)
-            {
-                return NotFound(response);
-            }
-
-            return StatusCode(500, new ApiResponse<string>(false, "An unexpected error occurred.", 500, null, response.Errors));
+            return BadRequest(response);
         }
 
 
 
 
 
-        [HttpDelete("removeItem")]
-        public async Task<IActionResult> RemoveItem(string bookId)
+        [HttpDelete("{cartId}/items/")]
+        public async Task<IActionResult> RemoveItem(string cartId, string bookId)
         {
-            try
+            var response = await _cartServices.RemoveItemAsync(cartId, bookId);
+
+            if (response.Succeeded)
             {
-                await _cartServices.RemoveItemAsync(bookId);
-                return Ok(new ApiResponse<string>("Item removed from cart successfully."));
+                return Ok(new { Message = response.Message, CartId = response.Data });
             }
-            catch (KeyNotFoundException ex)
+            else
             {
-                return NotFound(new ApiResponse<string>(false, ex.Message, 404, null, new List<string> { ex.Message }));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<string>(false, ex.Message, 400, null, new List<string> { ex.Message }));
+                return StatusCode(response.StatusCode, new { Message = response.Message, Errors = response.Errors });
             }
         }
 
 
-        [HttpGet("totalPrice")]
-        public async Task<IActionResult> GetTotalPrice()
+        [HttpGet("{cartId}/total-price")]
+        public async Task<IActionResult> GetCartTotalPrice(string cartId)
         {
-            var totalPrice = await _cartServices.GetTotalPriceAsync();
-            return Ok(new ApiResponse<decimal>(totalPrice, "Total price retrieved successfully."));
+            var response = await _cartServices.GetCartTotalPriceAsync(cartId);
+
+            if (response.Succeeded)
+            {
+                return Ok(new { Message = response.Message, TotalPrice = response.Data });
+            }
+            else
+            {
+                return StatusCode(response.StatusCode, new { Message = response.Message, Errors = response.Errors });
+            }
         }
 
-         
-        [HttpGet("viewCart")]
-        public async Task<IActionResult> ViewCart()
+
+        [HttpGet("{cartId}")]
+        public async Task<IActionResult> GetCartContents(string cartId)
         {
-            var response = await _cartServices.ViewCartAsync();
-            return Ok(response);
+            var response = await _cartServices.ViewCartContentsAsync(cartId);
+
+            if (response.Succeeded)
+            {
+                return Ok(new { Message = response.Message, CartItems = response.Data });
+            }
+            else
+            {
+                return StatusCode(response.StatusCode, new { Message = response.Message, Errors = response.Errors });
+            }
         }
 
 

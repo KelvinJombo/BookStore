@@ -52,7 +52,7 @@ namespace BookStore.Application.ServiceImplementation
                 _mapper.Map(bookDto, existingBook);
 
                 // Save the changes to the repository
-                _unitOfWork.BookRepository.Update(existingBook);
+                _unitOfWork.BookRepository.UpdateAsync(existingBook);
                 await _unitOfWork.SaveChangesAsync();
 
                 // Create a response DTO with the updated book details

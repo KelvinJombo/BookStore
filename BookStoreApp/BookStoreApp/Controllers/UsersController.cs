@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using BookStore.Application.DTOs;
 using BookStore.Application.ServiceImplementation;
+using System.Security.Claims;
 
 namespace BookStoreApp.Controllers
 {
@@ -20,16 +21,23 @@ namespace BookStoreApp.Controllers
         }
 
 
-        [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout(string userId, string paymentMethod)
-        {
-            var result = await _userServices.CheckoutAsync(userId, paymentMethod);
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-            return StatusCode(result.StatusCode, result);
-        }
+        //[HttpPost("checkout")]
+        //public async Task<IActionResult> Checkout(string paymentMethod)
+        //{
+        //    var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+        //    if (string.IsNullOrEmpty(userId))
+        //    {
+        //        return Unauthorized(new ApiResponse<string>(false, "User not authenticated.", 401, null, new List<string> { "User not authenticated." }));
+        //    }
+
+        //    var sessionId = HttpContext.Session.Id;
+        //    var response = await _userServices.CheckoutAsync(userId, sessionId, paymentMethod);
+        //    if (response.Succeeded)
+        //    {
+        //        return Ok(response);
+        //    }
+        //    return BadRequest(response);
+        //}
 
 
     }

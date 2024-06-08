@@ -8,22 +8,17 @@ using System.Threading.Tasks;
 namespace BookStore.Domain.Entities
 {
     public class Cart : BaseEntity
-    {
-        public string BookIDs { get; set; } // Comma-separated string
-
-        [NotMapped]
-        public List<string> BookIDList
-        {
-            get => BookIDs?.Split(',').ToList() ?? new List<string>();
-            set => BookIDs = string.Join(",", value);
-        }
-
+    { 
+          
+        [ForeignKey("Book")]
+        public string BookId { get; set; } 
         public List<Book> Books { get; set; } = new List<Book>();
-        public string AppUserID { get; set; }
+        public string? AppUserID { get; set; }  // Nullable until checkout
         public int Quantity { get; set; }
+         
     }
 
-
+    
 
 
 
