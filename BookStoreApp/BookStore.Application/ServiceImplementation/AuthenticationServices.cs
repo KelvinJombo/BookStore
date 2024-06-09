@@ -1,5 +1,4 @@
-﻿using BookStore.Application.DTOs;
-using BookStore.Application.Interfaces.Repository;
+﻿using BookStore.Application.Interfaces.Repository;
 using BookStore.Domain.Entities;
 using BookStore.Domain;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +10,8 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using BookStore.Application.Interfaces.Services;
+using BookStore.Application.DTOs.Register;
+using BookStore.Application.DTOs.Login;
 
 namespace BookStore.Application.ServiceImplementation
 {

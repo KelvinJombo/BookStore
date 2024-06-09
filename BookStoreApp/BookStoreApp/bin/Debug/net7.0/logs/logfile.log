@@ -1167,3 +1167,4 @@ Error Number:547,State:0,Class:16
 2024-06-08 12:25:31.9784|ERROR|BookStoreApp.Program|The host was aborted.
 2024-06-08 13:16:52.0569|ERROR|BookStoreApp.Program|The host was aborted.
 2024-06-08 13:17:04.4188|ERROR|BookStoreApp.Program|The host was aborted.
+2024-06-09 09:19:25.6082|ERROR|BookStoreApp.Program|Some services are not able to be constructed (Error while validating the service descriptor 'ServiceType: BookStore.Application.Interfaces.Services.IBookServices Lifetime: Scoped ImplementationType: BookStore.Application.ServiceImplementation.BookServices': Unable to resolve service for type 'Microsoft.Extensions.Logging.ILogger' while attempting to activate 'BookStore.Application.ServiceImplementation.BookServices'.)

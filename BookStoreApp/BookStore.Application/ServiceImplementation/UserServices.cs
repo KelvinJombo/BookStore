@@ -1,4 +1,6 @@
-﻿using BookStore.Application.DTOs;
+﻿using AutoMapper;
+using BookStore.Application.DTOs;
+using BookStore.Application.DTOs.Checkout;
 using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain;
@@ -14,10 +16,12 @@ namespace BookStore.Application.ServiceImplementation
     public class UserServices : IUserServices
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public UserServices(IUnitOfWork unitOfWork)
+        public UserServices(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
 
@@ -103,7 +107,7 @@ namespace BookStore.Application.ServiceImplementation
             var cartItems = await _unitOfWork.CartRepository.FindAsync(c => c.AppUserID == userId);
             if (cartItems != null && cartItems.Any())
             {
-                _unitOfWork.CartRepository.DeleteAllAsync(cartItems);
+                await _unitOfWork.CartRepository.DeleteAllAsync(cartItems);
                 await _unitOfWork.SaveChangesAsync();
                 return new ApiResponse<string>(true, "Cart cleared successfully.", 200, "Cart cleared successfully.", new List<string>());
             }
@@ -130,7 +134,7 @@ namespace BookStore.Application.ServiceImplementation
 
 
         // Purchase history
-        public async Task<List<Order>> GetPurchaseHistoryAsync(string userId)
+        public async Task<ApiResponse<List<OrderResponseDto>>> GetPurchaseHistoryAsync(string userId)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
@@ -138,8 +142,12 @@ namespace BookStore.Application.ServiceImplementation
                 throw new KeyNotFoundException($"User with ID {userId} not found.");
             }
 
-            return await _unitOfWork.OrderRepository.FindAsync(o => o.AppUserID == userId);
+            var orders = await _unitOfWork.OrderRepository.FindAsync(o => o.AppUserID == userId);
+            var orderDtos = _mapper.Map<List<OrderResponseDto>>(orders);
+
+            return ApiResponse<List<OrderResponseDto>>.Success(orderDtos, "Purchase history retrieved successfully.", 200);
         }
+
     }
 
 }

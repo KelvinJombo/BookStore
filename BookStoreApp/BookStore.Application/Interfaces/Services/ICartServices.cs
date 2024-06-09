@@ -1,4 +1,4 @@
-﻿using BookStore.Application.DTOs;
+﻿using BookStore.Application.DTOs.Cart;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
 using System;

@@ -40,28 +40,25 @@ namespace BookStoreApp.Controllers
 
 
 
-        [HttpGet("{userId}/purchase-history")]
+
+        [HttpGet("purchase-history/{userId}")]
         public async Task<IActionResult> GetPurchaseHistory(string userId)
         {
             try
             {
-                var orders = await _userServices.GetPurchaseHistoryAsync(userId);
-                if (orders == null || !orders.Any())
+                var response = await _userServices.GetPurchaseHistoryAsync(userId);
+                if (response.StatusCode == 200)
                 {
-                    return NotFound(new { Message = "No purchase history found for this user." });
+                    return Ok(response);
                 }
-                return Ok(new { Message = "Purchase history retrieved successfully.", Orders = orders });
+                else
+                {
+                    return StatusCode(response.StatusCode, response.Message);
+                }
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                // Log the exception (logging implementation is assumed to be in place)
-                // _logger.LogError(ex, "Error retrieving purchase history");
-
-                return StatusCode(500, new { Message = "An error occurred while retrieving the purchase history.", Errors = new List<string> { ex.Message } });
+                return NotFound(new { message = ex.Message });
             }
         }
 

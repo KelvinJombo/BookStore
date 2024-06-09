@@ -21,7 +21,7 @@ namespace BookStoreApp.Configuration
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
                 ClockSkew = TimeSpan.Zero
             };
-
+             
             services.AddSingleton(tokenValidationParameters);
 
             services.AddAuthentication(options =>

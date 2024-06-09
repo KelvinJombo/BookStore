@@ -1,14 +1,14 @@
 ﻿using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Application.ServiceImplementation;
-using BookStore.Domain.Entities.Helper;
 using BookStore.Domain.Entities;
+using BookStore.Domain.Entities.Helper;
 using BookStore.Persistence.Context;
 using BookStore.Persistence.Repository;
 using BookStoreApp.Mapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using NLog.Web;
 
 namespace BookStoreApp.Configuration
 {
@@ -22,6 +22,15 @@ namespace BookStoreApp.Configuration
             services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<BookStoreDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddSingleton<ILoggerFactory, LoggerFactory>();
+            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                loggingBuilder.AddNLog("NLog.config");
+            });
 
 
             services.AddAutoMapper(typeof(MapperProfiles));

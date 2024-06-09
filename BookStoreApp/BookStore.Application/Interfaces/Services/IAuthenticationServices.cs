@@ -1,4 +1,5 @@
-﻿using BookStore.Application.DTOs;
+﻿using BookStore.Application.DTOs.Login;
+using BookStore.Application.DTOs.Register;
 using BookStore.Domain;
 using System;
 using System.Collections.Generic;

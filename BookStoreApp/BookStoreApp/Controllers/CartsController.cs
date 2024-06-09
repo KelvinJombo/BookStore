@@ -1,11 +1,7 @@
 ﻿using BookStore.Application.Interfaces.Services;
-using BookStore.Application.ServiceImplementation;
 using BookStore.Domain.Entities;
-using BookStore.Domain;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using BookStore.Application.DTOs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookStoreApp.Controllers
 {
@@ -36,8 +32,7 @@ namespace BookStoreApp.Controllers
             return BadRequest(response);
         }
 
-
-
+         
 
 
         [HttpDelete("{cartId}/items/")]
@@ -56,6 +51,7 @@ namespace BookStoreApp.Controllers
         }
 
 
+
         [HttpGet("{cartId}/total-price")]
         public async Task<IActionResult> GetCartTotalPrice(string cartId)
         {
@@ -72,7 +68,7 @@ namespace BookStoreApp.Controllers
         }
 
 
-        [HttpGet("{cartId}")]
+        [HttpGet("{viewCart}")]
         public async Task<IActionResult> GetCartContents(string cartId)
         {
             var response = await _cartServices.ViewCartContentsAsync(cartId);

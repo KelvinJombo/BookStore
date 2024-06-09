@@ -1,4 +1,4 @@
-﻿using BookStore.Application.DTOs;
+﻿using BookStore.Application.DTOs.Book;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
 using System;
@@ -14,8 +14,8 @@ namespace BookStore.Application.Interfaces.Services
         Task<ApiResponse<BookResponseDto>> AddBookAsync(AddBookDto bookDto);
         Task<ApiResponse<BookResponseDto>> UpdateBookAsync(UpdateBookDto bookDto);
         Task<ApiResponse<Book>> DeleteBookByIdAsync(string bookId);
-        Task<BookResponseDto> GetBookByIdAsync(string bookId);
-        Task<BookResponseDto> GetBookByTitleAsync(string title);
+        Task<ApiResponse<BookResponseDto>> GetBookByIdAsync(string bookId);
+        Task<ApiResponse<BookResponseDto>> GetBookByTitleAsync(string title);
         Task<IEnumerable<BookResponseDto>> GetBooksByGenreAsync(string genreName);
 
         Task<IEnumerable<BookResponseDto>> GetAllBooksByPublishedDateAsync(DateTime publishedDate);

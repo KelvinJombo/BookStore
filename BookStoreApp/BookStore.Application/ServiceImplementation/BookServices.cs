@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using BookStore.Application.DTOs;
+using BookStore.Application.DTOs.Book;
 using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
 using BookStore.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace BookStore.Application.ServiceImplementation
 {
@@ -12,43 +13,56 @@ namespace BookStore.Application.ServiceImplementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ILogger _logger;
 
-        public BookServices(IUnitOfWork unitOfWork, IMapper mapper)
+        public BookServices(IUnitOfWork unitOfWork, IMapper mapper, ILogger<BookServices> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
-         
-         
+
+
 
         public async Task<ApiResponse<BookResponseDto>> AddBookAsync(AddBookDto bookDto)
         {
-            var book = _mapper.Map<Book>(bookDto);
 
-            await _unitOfWork.BookRepository.AddAsync(book);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                var book = _mapper.Map<Book>(bookDto);
 
-            var responseDto = _mapper.Map<BookResponseDto>(book);
+                await _unitOfWork.BookRepository.AddAsync(book);
 
-            return ApiResponse<BookResponseDto>.Success(responseDto, "Book added successfully.", 201);
+                await _unitOfWork.SaveChangesAsync();
+
+                var responseDto = _mapper.Map<BookResponseDto>(book);
+
+                return ApiResponse<BookResponseDto>.Success(responseDto, "Book added successfully.", 201);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<BookResponseDto>.Failed("Add Book Operation failed", 400, new List<string> { ex.Message });
+                
+            }
         }
 
 
-         
+
+
 
         public async Task<ApiResponse<BookResponseDto>> UpdateBookAsync(UpdateBookDto bookDto)
         {
             try
             {
-                // Find the existing book by its ID
+                 
                 var existingBook = await _unitOfWork.BookRepository.GetByIdAsync(bookDto.Id);
                 if (existingBook == null)
                 {
                     return ApiResponse<BookResponseDto>.Failed($"Book with ID {bookDto.Id} not found.", 404, new List<string>());
                 }
 
-                // Update the existing book entity with values from the DTO
+                 
                 _mapper.Map(bookDto, existingBook);
 
                 // Save the changes to the repository
@@ -62,7 +76,7 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                // Handle any unexpected exceptions
+                _logger.LogError(ex.Message, "Update Attempt, inconclusive, check your code again");
                 return ApiResponse<BookResponseDto>.Failed("An error occurred while updating the book: " + ex.Message, 500, new List<string> { ex.Message });
             }
         }
@@ -73,49 +87,79 @@ namespace BookStore.Application.ServiceImplementation
 
         public async Task<ApiResponse<Book>> DeleteBookByIdAsync(string bookId)
         {
-            var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
-            if (book != null)
+            try
             {
-                await _unitOfWork.BookRepository.DeleteAsync(book);
-                await _unitOfWork.SaveChangesAsync();
-                return ApiResponse<Book>.Success(book, "Book deleted successfully.", 200);
+                var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
+                if (book != null)
+                {
+                    await _unitOfWork.BookRepository.DeleteAsync(book);
+                    await _unitOfWork.SaveChangesAsync();
+                    return ApiResponse<Book>.Success(book, "Book deleted successfully.", 200);
+                }
+                else
+                {
+                    return ApiResponse<Book>.Failed($"Book with ID {bookId} not found.", 404, new List<string>());
+                }
             }
-            else
+            catch (Exception)
             {
-                return ApiResponse<Book>.Failed($"Book with ID {bookId} not found.", 404, new List<string>());
+
+                return ApiResponse<Book>.Failed(bookId, 500, new List<string>());
             }
         }
 
 
-        public async Task<BookResponseDto> GetBookByIdAsync(string bookId)
+        public async Task<ApiResponse<BookResponseDto>> GetBookByIdAsync(string bookId)
         {
-            var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
-            if (book == null)
+            try
             {
-                throw new KeyNotFoundException($"Book with ID {bookId} not found.");
+                var book = await _unitOfWork.BookRepository.GetByIdAsync(bookId);
+                if (book == null)
+                {
+                    throw new KeyNotFoundException($"Book with ID {bookId} not found.");
+                }
+
+                // Map the Book entity to BookResponseDto using AutoMapper
+                var responseDto = _mapper.Map<BookResponseDto>(book);
+
+                return ApiResponse<BookResponseDto>.Success(responseDto, "Book retrieved successfully.", 200);
             }
-
-            // Map the Book entity to BookResponseDto using AutoMapper
-            var responseDto = _mapper.Map<BookResponseDto>(book);
-
-            return responseDto;
+            catch (KeyNotFoundException ex)
+            {
+                 _logger.LogError(ex.Message, "The supplied BookId does not exist");
+                return ApiResponse<BookResponseDto>.Failed($"Book with ID {bookId} not found.", 404, new List<string> { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, "GetBook Service not efficient");
+                return ApiResponse<BookResponseDto>.Failed("GetBook Service Failed", 400, new List<string> { ex.Message });
+            }
         }
 
 
 
-        public async Task<BookResponseDto> GetBookByTitleAsync(string title)
+
+        public async Task<ApiResponse<BookResponseDto>> GetBookByTitleAsync(string title)
         {
-            var book = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Title == title);
-            if (book == null)
+            try
             {
-                throw new KeyNotFoundException($"Book with title {title} not found.");
+                var book = await _unitOfWork.BookRepository.FindSingleAsync(b => b.Title == title);
+                if (book == null)
+                {
+                    throw new KeyNotFoundException($"Book with title {title} not found.");
+                }
+
+                // Map the Book entity to BookResponseDto using AutoMapper
+                var responseDto = _mapper.Map<BookResponseDto>(book);
+
+                return ApiResponse<BookResponseDto>.Success(responseDto, "Process Completed Successfully", 200);
             }
-
-            // Map the Book entity to BookResponseDto using AutoMapper
-            var responseDto = _mapper.Map<BookResponseDto>(book);
-
-            return responseDto;
+            catch (Exception ex)
+            {
+                return ApiResponse<BookResponseDto>.Failed("Book retrieval failed. Review your code and try again.", 400, new List<string> { ex.Message });
+            }
         }
+
 
 
         public async Task<IEnumerable<BookResponseDto>> GetBooksByGenreAsync(string genreName)

@@ -10,14 +10,18 @@ var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentCla
 
 try
 {
+    logger.Debug("Init main");
+
     builder.Services.AddControllers();
+    builder.Services.AddAuthentication();
+    builder.Services.AddAuthorization();
     builder.Services.ConfigureAuthentication(configuration);
     builder.Services.AddDependencies(configuration);
     
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    
+   
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -25,6 +29,7 @@ try
     {
         app.UseSwagger();
         app.UseSwaggerUI();
+        app.UseDeveloperExceptionPage();
     }
 
     using (var scope = app.Services.CreateScope())
@@ -36,6 +41,7 @@ try
      
 
     app.UseHttpsRedirection();
+    app.UseAuthentication();
 
     app.UseAuthorization();
 

@@ -1,8 +1,9 @@
-﻿using BookStore.Application.DTOs;
+﻿using BookStore.Application.DTOs.Cart;
 using BookStore.Application.Interfaces.Repository;
 using BookStore.Application.Interfaces.Services;
 using BookStore.Domain;
 using BookStore.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,14 +15,15 @@ namespace BookStore.Application.ServiceImplementation
     public class CartServices : ICartServices
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<CartServices> _logger;
 
-        public CartServices(IUnitOfWork unitOfWork)
+        public CartServices(IUnitOfWork unitOfWork, ILogger<CartServices> logger)
         {
             _unitOfWork = unitOfWork;
-
+            _logger = logger;
         }
 
-
+         
 
         public async Task<ApiResponse<string>> AddItemAsync(string bookId, int quantity)
         {
@@ -61,8 +63,8 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                // Log the exception (logging implementation is assumed to be in place)
-                // _logger.LogError(ex, "Error adding item to cart");
+                 
+                 _logger.LogError(ex, "Error adding item to cart");
 
                 return ApiResponse<string>.Failed("An error occurred while adding the item to the cart.", 500, new List<string> { ex.Message });
             }
@@ -104,7 +106,7 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                 
+                _logger.LogError(ex, "Deletion Process failed, Cgeck codes in the try section.");
 
                 return ApiResponse<string>.Failed("An error occurred while removing the item from the cart.", 500, new List<string> { ex.Message });
             }
@@ -148,7 +150,7 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                 
+                _logger.LogError(ex, "Check codes in View Cart Service class");
 
                 return ApiResponse<List<CartViewDto>>.Failed("An error occurred while retrieving the cart contents.", 500, new List<string> { ex.Message });
             }
@@ -191,8 +193,8 @@ namespace BookStore.Application.ServiceImplementation
             }
             catch (Exception ex)
             {
-                 
 
+                _logger.LogError(ex, "Price Calculation failed, check ur logic again");
                 return ApiResponse<decimal>.Failed("An error occurred while calculating the total price of the cart.", 500, new List<string> { ex.Message });
             }
 

@@ -3,10 +3,12 @@ using BookStore.Domain.Entities;
 using BookStore.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BookStore.Application.DTOs;
+using BookStore.Application.DTOs.Book;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookStoreApp.Controllers
 {
+    //[Authorize(Roles = "User")]
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
@@ -19,7 +21,7 @@ namespace BookStoreApp.Controllers
         }
 
 
-
+        
         [HttpPost("addBook")]
         public async Task<IActionResult> AddBook([FromBody] AddBookDto book)
         {
@@ -32,7 +34,7 @@ namespace BookStoreApp.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-
+        //[Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> UpdateBook([FromBody] UpdateBookDto book)
         {
@@ -42,7 +44,7 @@ namespace BookStoreApp.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
-
+        //[Authorize]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteBookById(string id)
         {
@@ -50,6 +52,8 @@ namespace BookStoreApp.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
+
+        //[Authorize]
         [HttpGet("getById")]
         public async Task<IActionResult> GetBookById(string id)
         {
